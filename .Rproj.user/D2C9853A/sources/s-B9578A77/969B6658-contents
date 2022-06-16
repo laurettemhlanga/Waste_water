@@ -1,0 +1,33 @@
+sensitivity <- read.csv("data/sense_spe_calulations") %>% 
+  dplyr::select(N_log_wks, percent, lead_ww, sensitivity)
+
+specificity <- read.csv("data/specificity_calulations") %>% 
+  dplyr::select(N_log_wks, percent, lead_ww, specificity)
+
+
+
+inner_join(sensitivity, specificity, color = as.factor(percent))%>% 
+  ggplot()+
+  geom_line(aes(y = sensitivity, x = 1 - specificity))+
+  # geom_line(aes(y = seq(0, 3, 0.01), x =seq(0, 3, 0.01)), linetype = "dashed")+
+  theme_bw(base_size = 22, base_family = "") +
+  labs(x = "1 - specifity", y = "sensitivity", color = "")+
+  theme(axis.text.x = element_text())+
+  scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, 0.2))+
+  scale_x_continuous(limits = c(0, 1), breaks = seq(0, 1, 0.2))+
+  facet_wrap(~lead_ww, labeller = labeller(lead_ww = facet_names))
+
+
+
+ggplot()+
+  geom_point(aes(y = specificity, x = N_log_wks, 
+                 color = as.factor(percent)), size = 3)+
+  theme_bw(base_size = 22, base_family = "") +
+  labs(x = "weeks in the rolling mean", y = "specificity", color = "% increase")+
+  theme(axis.text.x = element_text(), legend.position = "bottom")+
+  scale_y_continuous(limits = c(0, 1.2), breaks = seq(0, 1.2, 0.2))+
+  scale_x_continuous(limits = c(1, 6), breaks = seq(1, 6, 1))+
+  geom_text(aes(x = N_log_wks, y = max(specificity) + 0.2, label = sample), 
+            position = position_dodge(width = 0.25), size = 5)+
+  facet_wrap(~lead_ww, labeller = labeller(lead_ww = facet_names))
+

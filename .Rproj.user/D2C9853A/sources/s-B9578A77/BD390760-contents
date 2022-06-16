@@ -1,0 +1,133 @@
+rm(list = ls())
+
+###############################################
+# suststained increase three weeks 
+# 
+###############################################
+
+suppressPackageStartupMessages({require(readxl)
+  require(dplyr)
+  require(tidyverse)
+  require(stringr)
+  require(data.table)
+}) 
+
+
+
+#new data 
+#new data 
+ww_gold_standard_mod <- read.csv("new_ww.csv") %>% 
+  mutate(in_trough = ifelse(use_for_spec == TRUE, 0, 
+                            ifelse(use_for_spec == FALSE, 1, NA)) )
+
+wastedata <- readxl::read_excel("wasterwater20220314.xlsx", 
+                                "Datapairs_allplants_C")
+
+weeks = 1:6
+ww_threshhold = seq(0.1, 0.5, 0.1)
+lead_ww <- 1:4
+
+
+indexes = expand.grid(weeks, ww_threshhold)
+
+
+# Waste water data 
+waste_data <- (wastedata 
+               %>% rename_all(~str_replace_all(.x, " ", '')) 
+               %>% rename_with(~gsub("[[:punct:]]", "", .x))
+               %>% mutate(MuniName = ifelse(MuniName == "Tygerberg", "CT Tygerberg", 
+                                            ifelse(MuniName == "Stellenbosch", "CT Southern",
+                                                   ifelse(MuniName == "Buffalo city", "Buffalo City",  MuniName))))
+               %>% rename(epi_wk = Epiweek) 
+               %>% select(epi_wk, province = Province, MuniName,
+                          NICDPlant, GenecopiesmL, LoggenecopiesmL)
+)
+
+
+
+# merge the waste water data and the positivity rate data
+wwgold_standardfiltered <-(ww_gold_standard_mod
+                           %>% select(-province)
+                           %>% filter(epi_yr >= 2021 | MuniName != "Hantam")
+                           %>% inner_join(waste_data)
+)
+
+
+# Calculate N_prev moving average
+
+ww_gold_standard_peak_sus <- rbindlist(lapply(1:nrow(indexes), 
+                                              function(x)(wwgold_standardfiltered 
+                                                          %>% arrange(NICDPlant, epi_yr, epi_wk)
+                                                          %>% group_by(NICDPlant) 
+                                                          %>% mutate(N_log_wks = indexes[x, 1],
+                                                                     percent = indexes[x, 2] *100,
+                                                                     wwthreshhold = log10(1+ indexes[x, 2]),
+                                                                     n_weeks_genecopies_ave = lag(frollmean(GenecopiesmL,
+                                                                                                            indexes[x,1], na.rm = T),1),
+                                                                     n_weeks_logcopies_ave = log10(n_weeks_genecopies_ave))
+                                                          %>% mutate(test_logcopies = ifelse(LoggenecopiesmL - n_weeks_logcopies_ave > log10(1+indexes[x,2]), 1 , # should it still be % increase
+                                                                                             ifelse(LoggenecopiesmL - n_weeks_logcopies_ave < log10(1+indexes[x,2]), 0, NA)),
+                                                                     test_three_consecu = ifelse(lag(test_logcopies, 2) == 1 & lag(test_logcopies,1) == 1 & test_logcopies == 1, 1, 
+                                                                                                 ifelse(lag(test_logcopies, 2) == 1 & lag(test_logcopies,1) == 1 & test_logcopies == 0|
+                                                                                                          lag(test_logcopies, 2) == 1 & lag(test_logcopies,1) == 0 & test_logcopies == 0|
+                                                                                                          lag(test_logcopies, 2) == 0 & lag(test_logcopies,1) == 0 & test_logcopies == 0|
+                                                                                                          lag(test_logcopies, 2) == 0 & lag(test_logcopies,1) == 0 & test_logcopies == 1|
+                                                                                                          lag(test_logcopies, 2) == 0 & lag(test_logcopies,1) == 1 & test_logcopies == 1|
+                                                                                                          lag(test_logcopies, 2) == 0 & lag(test_logcopies,1) == 1 & test_logcopies == 0|
+                                                                                                          lag(test_logcopies, 2) == 1 & lag(test_logcopies,1) == 0 & test_logcopies == 1,
+                                                                                                        0, NA)))
+                                              )))
+
+
+
+
+specificitydata_filter_sus <- rbindlist(lapply(seq_along(lead_ww),function(x)(ww_gold_standard_peak_sus
+                                                                              %>% arrange(NICDPlant, epi_yr, epi_wk, N_log_wks, wwthreshhold ) 
+                                                                              %>% group_by(NICDPlant, N_log_wks, wwthreshhold)
+                                                                              %>% mutate(lead_ww =lead_ww[x],
+                                                                                         in_trough_lag = lead(in_trough,  lead_ww[x]))
+                                                                              %>% filter(in_trough_lag == 0)
+                                                                              %>% drop_na(test_three_consecu) 
+                                                                              %>% mutate(comparison_one  = ifelse(in_trough_lag == 1 & test_three_consecu == 1, "TP",
+                                                                                                                  ifelse(in_trough_lag == 1 & test_three_consecu == 0, "FN",
+                                                                                                                         ifelse(in_trough_lag == 0 & test_three_consecu == 1, "FP",
+                                                                                                                                ifelse(in_trough_lag == 0 & test_three_consecu == 0, "TN", NA)))))
+                                                                              
+)))
+
+
+comparisondata_sus <- specificitydata_filter_sus %>% 
+  group_by( N_log_wks, wwthreshhold, lead_ww, percent) %>%
+  select(in_trough_lag, test_three_consecu,  comparison_one)# %>%
+#summarise(n = n())
+
+
+specificity_data_sus <- comparisondata_sus %>% 
+  group_by(comparison_one, lead_ww, N_log_wks, wwthreshhold, percent) %>% 
+  summarise(counts= n())  
+
+
+
+spe_calulations_sus <- specificity_data_sus %>%
+  pivot_wider(names_from = comparison_one,values_from = counts)%>%
+  mutate(specificity  = TN/(TN + FP),sample  = TN + FP)
+
+
+facet_names = paste("lead week =", 1:4)
+names(facet_names) <- 1:4
+
+spe_calulations_sus %>% 
+  ggplot()+
+  geom_point(aes(y = specificity, x = N_log_wks  , color = as.factor(percent)), size = 3)+
+  theme_bw(base_size = 22, base_family = "") +
+  labs(x = "weeks in the rolling mean", y = "specificity", color = "% increase")+
+  theme(axis.text.x = element_text(), legend.position = "bottom")+
+  scale_y_continuous(limits = c(0, 1.2), breaks = seq(0, 1.2, 0.2))+
+  scale_x_continuous(limits = c(1, 6), breaks = seq(1, 6, 1))+
+  geom_text(aes(x = N_log_wks, y = max(specificity, na.rm = T) + 0.2, label = sample), # some values are not the same 
+            position = position_dodge(width = 0.25), size = 5)+
+  facet_wrap(~lead_ww, labeller = labeller(lead_ww = facet_names))
+
+
+ggsave("plots/specificity_sustained_three_week_increase.png", w = 14, h = 14)
+

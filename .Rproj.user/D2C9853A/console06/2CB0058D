@@ -1,0 +1,86 @@
+]0;/home/laurette/Desktop/Github/wastewater]0;laurette@laurette-laptop: ~/Desktop/Github/wastewater[01;32mlaurette@laurette-laptop[00m:[01;34m~/Desktop/Github/wastewater[00m$ ls 
+1093414.pdf                      roc_curves_analysis.pdf  six_week_goldstandard.R   ww_gold_standard20220310.csv
+Admission.csv                    roc_curves_analysis.R    wasterwater20220310.xlsx  ww_gold_standard20220310.xls
+new_goldstandard_def.R           roc_curves_analysis.Rmd  wasterwater20220314.xlsx  ww_gold_standard.csv
+roc_curves_analysis20220317.pdf  roc_example1.R           wastewater_plots.R
+roc_curves_analysis20220317.Rmd  roc_example.R            wastewater.Rproj
+]0;/home/laurette/Desktop/Github/wastewater]0;laurette@laurette-laptop: ~/Desktop/Github/wastewater[01;32mlaurette@laurette-laptop[00m:[01;34m~/Desktop/Github/wastewater[00m$ cd 
+]0;/home/laurette]0;laurette@laurette-laptop: ~[01;32mlaurette@laurette-laptop[00m:[01;34m~[00m$ 
+]0;/home/laurette]0;laurette@laurette-laptop: ~[01;32mlaurette@laurette-laptop[00m:[01;34m~[00m$ cd [K..
+Could not find the database of available applications, run update-command-not-found as root to fix this
+cd..: command not found
+]0;/home/laurette]0;laurette@laurette-laptop: ~[01;32mlaurette@laurette-laptop[00m:[01;34m~[00m$ ls 
+[0m[01;34mDesktop[0m                [01;34mMeditation[0m                    pastCROIabstracts.pdf       [01;34mRecordings[0m
+Diagram1.dia.autosave  [01;34mMusic[0m                         [01;34mPictures[0m                    [01;35mRplot.png[0m
+[01;34mDocuments[0m              [01;35m_-NYK67n5Lj_U.mkv[0m             [01;34mPopulationSimulation[0m        [01;31mrstudio-0.99.896-amd64.deb[0m
+[01;34mDownloads[0m              [01;35m_-O8CfrnOPtLc.mkv[0m             [01;34mpraticalhellowworld[0m         [01;34msnap[0m
+[01;34mDropbox[0m                _-OgORuirswSA.f247.webm.part  [01;32mPrepareLinuxEnvironment.sh[0m  [01;34mTemplates[0m
+[01;32mhome[0m                   [01;34mopencv[0m                        [01;34mPublic[0m                      [34;42mThe wheel of time[0m
+makefile               [01;35m_-oXtUUluj82o.mkv[0m             [01;34mR[0m                           [01;34mVideos[0m
+]0;/home/laurette]0;laurette@laurette-laptop: ~[01;32mlaurette@laurette-laptop[00m:[01;34m~[00m$ cd Desktop/
+]0;/home/laurette/Desktop]0;laurette@laurette-laptop: ~/Desktop[01;32mlaurette@laurette-laptop[00m:[01;34m~/Desktop[00m$ ls
+[0m[01;34marticles [0m
+[01;34maudiobooks[0m
+[01;34mC203_application[0m
+[01;31mC203_application.zip[0m
+[01;34mCamera Uploads[0m
+[01;34mcar_details[0m
+[01;34mcovid20200215[0m
+[01;34mCovid_data[0m
+[01;34mcovid_reports[0m
+[01;34mcprograms[0m
+[01;34mcv_folder[0m
+Emergency Appointments | U.S. Embassy & Consulates in South Africa.desktop
+[01;34mEMOD-InputData[0m
+[01;34mGithub[0m
+[01;34mhealthcheck[0m
+[01;34mHezel[0m
+[01;34mhrec[0m
+[01;35mlanding_page.png[0m
+[01;35mlaurette20220314.png[0m
+[01;34mlaurette_aims_tz-research-project-template-829633f5932b[0m
+[01;34mlaurettemhlangacv[0m
+[01;34mLaurette_thesis_submission[0m
+[01;34mmanuscript_cutoffs[0m
+[01;34mMMED_2019[0m
+[01;34mmmeg_org_folder[0m
+[01;34mmovies[0m
+[01;34mMSF_DATA[0m
+Passive Voice Detector.desktop
+[01;34mpictures[0m
+[01;34mpython[0m
+[01;34mRecency_case_defn[0m
+[01;34mrecipes[0m
+[01;34mrecordings[0m
+[01;34mRecordings[0m
+[01;34mregistration[0m
+[01;34mSANBS_people_tocall[0m
+[01;34mseams_reports[0m
+[01;34mSoftware Engineering[0m
+[01;34mSSJC[0m
+Stellenbosch University - IT Student Registration Center.desktop
+[01;34mSurveySimulations[0m
+[01;34mtwosurveys_recency[0m
+[01;34mTwoSurveysRecency[0m
+[01;34mwaterwaste[0m
+[01;34mzimmusic[0m
+[K]0;laurette@laurette-laptop: ~/Desktop[01;32mlaurette@laurette-laptop[00m:[01;34m~/Desktop[00m$ cd Deskto[K[K[K[K[K[KGithub/
+]0;/home/laurette/Desktop/Github]0;laurette@laurette-laptop: ~/Desktop/Github[01;32mlaurette@laurette-laptop[00m:[01;34m~/Desktop/Github[00m$ cd waste
+wastewater/  waste_water/ 
+]0;laurette@laurette-laptop: ~/Desktop/Github[01;32mlaurette@laurette-laptop[00m:[01;34m~/Desktop/Github[00m$ cd waste_water/
+]0;/home/laurette/Desktop/Github/waste_water]0;laurette@laurette-laptop: ~/Desktop/Github/waste_water[01;32mlaurette@laurette-laptop[00m:[01;34m~/Desktop/Github/waste_water[00m$ mkdir plots
+mkdir: cannot create directory ‘plots’: File exists
+]0;/home/laurette/Desktop/Github/waste_water]0;laurette@laurette-laptop: ~/Desktop/Github/waste_water[01;32mlaurette@laurette-laptop[00m:[01;34m~/Desktop/Github/waste_water[00m$ [K]0;laurette@laurette-laptop: ~/Desktop/Github/waste_water[01;32mlaurette@laurette-laptop[00m:[01;34m~/Desktop/Github/waste_water[00m$ [K]0;laurette@laurette-laptop: ~/Desktop/Github/waste_water[01;32mlaurette@laurette-laptop[00m:[01;34m~/Desktop/Github/waste_water[00m$ [K]0;laurette@laurette-laptop: ~/Desktop/Github/waste_water[01;32mlaurette@laurette-laptop[00m:[01;34m~/Desktop/Github/waste_water[00m$ ls
+[0m[01;34mdata[0m
+[01;34mnotes[0m
+[01;34mplots[0m
+sensitivity_new_goldstandard_def.R
+sensitivity_three_week_sustatined_increase.R
+sensitivity_two_week_sustatined_increase.R
+specificity_new_goldstandard_def.R
+specificity_three_week_sustatined_increase.R
+specificity_two_week_sustatined_increase.R
+wastewater.Rproj
+]0;/home/laurette/Desktop/Github/waste_water]0;laurette@laurette-laptop: ~/Desktop/Github/waste_water[01;32mlaurette@laurette-laptop[00m:[01;34m~/Desktop/Github/waste_water[00m$ [K]0;laurette@laurette-laptop: ~/Desktop/Github/waste_water[01;32mlaurette@laurette-laptop[00m:[01;34m~/Desktop/Github/waste_water[00m$ [K]0;laurette@laurette-laptop: ~/Desktop/Github/waste_water[01;32mlaurette@laurette-laptop[00m:[01;34m~/Desktop/Github/waste_water[00m$ git status 
+fatal: Not a git repository (or any of the parent directories): .git
+]0;/home/laurette/Desktop/Github/waste_water]0;laurette@laurette-laptop: ~/Desktop/Github/waste_water[01;32mlaurette@laurette-laptop[00m:[01;34m~/Desktop/Github/waste_water[00m$ 

@@ -1,0 +1,121 @@
+rm(list = ls())
+
+suppressPackageStartupMessages({require(readxl)
+  require(dplyr)
+  require(tidyverse)
+  require(stringr)
+  require(data.table)
+  }) 
+
+
+#new data 
+ww_gold_standard_mod <- read.csv("data/ww_gold_standard20220310.csv") 
+wastedata <- readxl::read_excel("data/wasterwater20220314.xlsx", "Datapairs_allplants_C")
+
+weeks = 1:6
+ww_threshhold = seq(0.1, 0.5, 0.1)
+
+
+indexes = expand.grid(weeks, ww_threshhold)
+  
+  # list(#c(1, 0), c(1, 0.05), c(1, 0.1), c(1, 0.15), c(1, 0.2),
+
+
+# Waste water data 
+waste_data <- (wastedata 
+               %>% rename_all(~str_replace_all(.x, " ", '')) 
+               %>% rename_with(~gsub("[[:punct:]]", "", .x))
+               %>% mutate(MuniName = ifelse(MuniName == "Tygerberg", "CT Tygerberg", 
+                                        ifelse(MuniName == "Stellenbosch", "CT Southern",
+                                               ifelse(MuniName == "Buffalo city", "Buffalo City",  MuniName))))
+               %>% rename(epi_wk = Epiweek) 
+               %>% select(epi_wk, province = Province, MuniName,
+                          NICDPlant, GenecopiesmL, LoggenecopiesmL)
+               )
+
+
+
+# merge the waste water data and the positivity rate data
+wwgold_standardfiltered <-(ww_gold_standard_mod
+                           %>% select(-province)
+                           %>% filter(epi_yr >= 2021 | MuniName != "Hantam")
+                           %>% inner_join(waste_data)
+                       )
+
+ 
+# Calculate N_prev moving average
+ww_gold_standard_peak <- rbindlist(lapply(1:nrow(indexes), function(x)(wwgold_standardfiltered 
+                         %>% arrange(NICDPlant, epi_yr, epi_wk) %>% 
+                           group_by(NICDPlant) 
+                         %>% mutate(N_log_wks = indexes[x, 1],
+                                    percent = indexes[x, 2] *100,
+                                    wwthreshhold = log10(1+ indexes[x, 2]),
+                                    n_weeks_genecopies_ave = lag(frollmean(GenecopiesmL,
+                                                                      indexes[x,1], na.rm = T),1),
+                                    n_weeks_logcopies_ave = log10(n_weeks_genecopies_ave))
+                         
+                         
+                         %>% mutate(test_logcopies = ifelse(LoggenecopiesmL - n_weeks_logcopies_ave > log10(1+indexes[x,2]), 1 , 
+                                                            ifelse(LoggenecopiesmL - n_weeks_logcopies_ave < log10(1+indexes[x,2]), 0, NA)))
+                         )))
+
+
+
+lead_ww <- 1:4
+
+Sensitivitydata_filter<- rbindlist(lapply(seq_along(lead_ww),function(x)(ww_gold_standard_peak
+                                                                              %>% arrange(NICDPlant, epi_yr, epi_wk , N_log_wks, wwthreshhold)
+                                                                              %>% group_by(NICDPlant, N_log_wks, wwthreshhold)
+                                                                              %>% mutate(lead_ww =lead_ww[x],
+                                                                                         entered_lag = lead(entered,  lead_ww[x]))
+                                                                              %>% filter(entered_lag == 1)
+                                                                              %>% drop_na(test_logcopies) 
+                                                                              %>% mutate(comparison  = ifelse(entered_lag == 1 & test_logcopies == 1, "TP",
+                                                                                                              ifelse(entered_lag == 1 & test_logcopies == 0, "FN",
+                                                                                                                     ifelse(entered_lag == 0 & test_logcopies == 1, "FP",
+                                                                                                                            ifelse(entered_lag == 0 & test_logcopies == 0, "TN", NA)))))
+                                                                              
+)))
+
+
+comparisondata <- Sensitivitydata_filter %>% 
+  group_by( N_log_wks, wwthreshhold, lead_ww, percent) %>%
+  select(entered, test_logcopies, comparison) 
+
+
+sensetivity_data <- comparisondata %>% 
+  group_by(comparison, N_log_wks,percent, wwthreshhold, lead_ww) %>% 
+  summarise(counts= n()) 
+
+
+
+sensetivity_calulations <- (sensetivity_data 
+                          %>% group_by( comparison, N_log_wks, percent,wwthreshhold, lead_ww) 
+                          %>% pivot_wider(names_from = comparison, 
+                                          values_from = counts) 
+                          %>% mutate(sensitivity  = TP/(TP + FN),
+                                     sample  = TP + FN)
+         )
+
+
+# write_csv(sense_spe_calulations, "data/sense_spe_calulations")
+
+facet_names = paste("lead week =", 1:4)
+names(facet_names) <- 1:4
+
+sensetivity_calulations %>% 
+  ggplot()+
+  geom_point(aes(y = sensitivity, x = N_log_wks  , color = as.factor(percent)), size = 3)+
+  theme_bw(base_size = 22, base_family = "") +
+  labs(x = "weeks in the rolling mean", y = "sensitivity", color = "% increase")+
+  theme(axis.text.x = element_text(), legend.position = "bottom")+
+  scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, 0.2))+
+  scale_x_continuous(limits = c(1, 6), breaks = seq(1, 6, 1))+
+  geom_text(aes(x = N_log_wks, y = max(sensitivity) + 0.1, label = sample), 
+            position = position_dodge(width = 0.25), size = 5)+
+  facet_wrap(~lead_ww, labeller = labeller(lead_ww = facet_names))
+
+
+ggsave("plots/sensitivity_X_increase.png", w = 8, h = 8)
+
+

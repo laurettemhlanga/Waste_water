@@ -1,0 +1,41 @@
+rm(list = ls())
+suppressPackageStartupMessages({require(readxl)
+  require(dplyr)
+  require(tidyverse)
+  require(stringr)
+  require(ROCR)
+  require(pROC)
+}) 
+
+
+#new data 
+
+
+ww_gold_standard <- read.csv("/home/laurette/Downloads/ww_gold_standard.csv")
+                 
+
+district_names <- (read.csv("/home/laurette/Dropbox/Wastewate_studies/Wastewaterplantsandsubdistricts2.csv")
+                   %>% rename(nicdplant = Wastewater.plant.name,
+                              Province = Province,
+                              MuniName = MuniN))
+
+goldstandard_data <- (ww_gold_standard
+                      %>% inner_join(district_names))
+
+wastedata <- (readxl::read_excel("wastewater.xlsx", "Datapairs_allplants_C")
+              %>% rename_all(~str_replace_all(.x, " ", '')) 
+              %>% rename_with(~gsub("[[:punct:]]", "", .x))
+              %>% select(epi_wk = Epiweek,
+                         # wk_start_date = NA,
+                         Province = Province, 
+                         district = District,
+                         nicdplant = NICDPlant,
+                         genecopiesmL = GenecopiesmL,
+                         loggenecopiesmL = LoggenecopiesmL
+                         )
+              %>% inner_join(goldstandard_data)
+              )
+
+View(wastedata)
+
+

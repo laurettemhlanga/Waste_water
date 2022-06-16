@@ -1,0 +1,15 @@
+
+
+waste water analysis 
+ # use Juliet's data as is 
+ # in the waste water data find the N weeks (1 - 6) rolling average in the log copies
+   # Log(this week) exceeds Log (mean of previous weeks) by Log (1+X) N_prev = 1, 2,3, … 
+   # add new column called test i.e. if Log(this week) > Log (mean of previous N_weeks) assign 1 else 0 if NA 
+   assign NA
+ # merge the data 
+ # exctract/filter the dates in which the column entered == 1 
+    *  If gold standard = 1 and test = 1 assign True Positive (TP)
+    *  If gold standard = 1 and test = 0 assign False Negative (FN)
+    *  If gold standard = 0 and test = 1 assign False Positive (FP)
+    *  If gold standard = 0 and test = 0 assign True Negative (TN) 
+    *  else assign NA

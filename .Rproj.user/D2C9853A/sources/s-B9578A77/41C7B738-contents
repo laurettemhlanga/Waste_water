@@ -1,0 +1,133 @@
+# waste sewershed
+# reproduce what  chinwe currently has 
+rm(list = ls())
+suppressPackageStartupMessages({require(readxl)
+            require(dplyr)
+            require(tidyverse)
+            require(stringr)
+            require(ROCR)
+            require(pROC)
+            }) 
+
+setwd("/home/laurette/Desktop/Github/wastewater/")
+wastedata <- readxl::read_excel("wastewater.xlsx", "Datapairs_allplants_C")
+
+cut_offs <- seq(0, 3, 0.01)
+# prep the data 
+
+lagdata <- lapply(seq_along(cut_offs), function(x) wastedata %>% 
+  rename_all(~str_replace_all(.x, " ", '')) %>% 
+  rename_with(~gsub("[[:punct:]]", "", .x)) %>% 
+  group_by(Province, District, NICDPlant) %>% 
+  mutate(cut_off = cut_offs[x], diff_three_week = Cases - lag(Cases, 3),
+         diff_logcopies_week = LoggenecopiesmL - lag(LoggenecopiesmL, 1),
+         gold_standard = ifelse(diff_three_week >= 0, 1, 0), 
+         test  = ifelse(is.na(diff_logcopies_week), NA,
+                        ifelse(diff_logcopies_week >= cut_offs[x], 1, 0)),
+         comparison = ifelse(gold_standard == 1 & test == 1, "TP",
+                             ifelse(gold_standard == 1 & test == 0, "FN",
+                                    ifelse(gold_standard == 0 & test == 1, "FP",
+                                           ifelse(gold_standard == 0 & test == 0, "TN", NA))))))
+  
+  
+wastedata_mod <- bind_rows(lagdata)
+
+# comparisondata <- wastedata_mod %>% 
+#   group_by(Province, District, NICDPlant, cut_off) %>%
+#   select(gold_standard, test, comparison) 
+#  
+# 
+# #goldstand_vs_test 
+# sensetivity_data <- comparisondata %>% 
+#   drop_na(comparison) %>%
+#   group_by(Province, District, NICDPlant,cut_off ,comparison) %>% 
+#   summarise(counts= n()) 
+# 
+# 
+# 
+# sense_spe_calulations <- sensetivity_data %>% 
+#   group_by(Province, District, NICDPlant, comparison, cut_off) %>% 
+#   pivot_wider(names_from = comparison, values_from = counts) %>% 
+#   mutate(sensitivity  = TP/(TP + FN),
+#          specificity = TN/(FP + TN),
+#          specificity_compl  = 1 - specificity)
+# 
+# 
+# # View(sense_spe_calulations)
+# # calculate the area under curve 
+#  #auc = 
+# 
+# sense_spe_calulations %>% 
+#   # filter(NICDPlant == "Zandvliet") %>% 
+#   ggplot()+
+#   # geom_point(aes(y = sensitivity, x = specificity_compl))+
+#   geom_line(aes(y = sensitivity, x = specificity_compl, col = NICDPlant))+
+#   theme_bw(base_size = 22, base_family = "") +
+#   labs(x = "1 - specifity", y = "sensitivity", color = "")+
+#   theme(axis.text.x = element_text())+
+#   scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, 0.2))+
+#   scale_x_continuous(limits = c(0, 1), breaks = seq(0, 1, 0.2))
+# 
+# 
+# 
+# NICDPlant <- drop_na(sense_spe_calulations ) %>% 
+#   filter(NICDPlant == "Vlakplaats")
+# 
+# 
+# 
+# roccurve <-roc(as.vector(NICDPlant$sensitivity)~as.vector(NICDPlant$specificity_compl),
+#                           plot=TRUE, print.auc=TRUE, 
+#                           col="green",lwd =4, legacy.axes=TRUE, 
+#                           main="ROC Curves")
+
+########################################################################################
+#Without grouping 
+########################################################################################
+
+
+comparisondata <- wastedata_mod %>% 
+  group_by(Province, District, NICDPlant, cut_off) %>%
+  select(gold_standard, test, comparison) 
+
+
+#goldstand_vs_test 
+sensetivity_data <- comparisondata %>% 
+  drop_na(comparison) %>%
+  group_by(comparison, cut_off) %>% 
+  summarise(counts= n()) 
+
+
+
+sense_spe_calulations <- sensetivity_data %>% 
+  group_by( comparison, cut_off) %>% 
+  pivot_wider(names_from = comparison, values_from = counts) %>% 
+  mutate(sensitivity  = TP/(TP + FN),
+         specificity = TN/(FP + TN),
+         specificity_compl  = 1 - specificity)
+
+
+# View(sense_spe_calulations)
+# calculate the area under curve 
+#auc = 
+
+sense_spe_calulations %>% 
+  ggplot()+
+  # geom_point(aes(y = sensitivity, x = specificity_compl))+
+  geom_line(aes(y = sensitivity, x = specificity_compl))+
+  geom_line(aes(y = seq(0, 3, 0.01), x =seq(0, 3, 0.01)), linetype = "dashed")+
+  theme_bw(base_size = 22, base_family = "") +
+  labs(x = "1 - specifity", y = "sensitivity", color = "")+
+  theme(axis.text.x = element_text())+
+  scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, 0.2))+
+  scale_x_continuous(limits = c(0, 1), breaks = seq(0, 1, 0.2))
+
+
+# NICDPlant <- drop_na(sense_spe_calulations )
+#   
+# 
+# 
+# roccurve <-roc(as.vector(NICDPlant$sensitivity)~as.vector(NICDPlant$specificity_compl),
+#                            plot=TRUE, print.auc=TRUE, 
+#                            col="green",lwd =4, legacy.axes=TRUE, 
+#                            main="ROC Curves")
+
